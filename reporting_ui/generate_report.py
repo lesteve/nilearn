@@ -26,6 +26,7 @@ def chose_params():
                 ('smoothing_fwhm', 6.),
                 ('threshold', 3.),
                 ('verbose', ['10', '0', '10']),
+                ('input_folder', '%folder_picker')
                 ]
 
     adict = collections.OrderedDict(datalist)
@@ -40,9 +41,17 @@ def chose_params():
 
 
 def get_fitted_canica(func_files, **params):
+    input_folder = params.pop('input_folder')
+    func_files = sorted(os.path.join(root, filename)
+                        for root, dirs, filenames in os.walk(input_folder)
+                        for filename in filenames if filename.endswith('.nii.gz'))
+
     canica = CanICA(memory='nilearn_cache', memory_level=5, random_state=0,
                     n_jobs=-1, **params)
 
+
+    if not func_files:
+        raise ValueError('Could not find any files in the input folder')
     canica.fit(func_files)
     return canica
 

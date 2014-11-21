@@ -78,7 +78,7 @@ if os.environ['QT_API'] == 'pyqt':
                      QColorDialog, QPixmap, QTabWidget, QApplication,
                      QStackedWidget, QDateEdit, QDateTimeEdit, QFont,
                      QFontComboBox, QFontDatabase, QGridLayout, QTextEdit,
-                     QDoubleValidator)
+                     QDoubleValidator, QFileDialog)
     from PyQt4.QtCore import Qt, SIGNAL, SLOT, QSize
     from PyQt4.QtCore import pyqtSlot as Slot
     from PyQt4.QtCore import pyqtProperty as Property
@@ -90,7 +90,7 @@ if os.environ['QT_API'] == 'pyside':
                      QColorDialog, QPixmap, QTabWidget, QApplication,
                      QStackedWidget, QDateEdit, QDateTimeEdit, QFont,
                      QFontComboBox, QFontDatabase, QGridLayout, QTextEdit,
-                     QDoubleValidator, QFormLayout)
+                     QDoubleValidator, QFormLayout, QFileDialog)
     from PySide.QtCore import Qt, SIGNAL, SLOT, QSize, Slot, Property
 
 
@@ -150,6 +150,35 @@ def to_text_string(obj, encoding=None):
             return obj
         else:
             return str(obj, encoding)
+
+
+class MyFolderPicker(QPushButton):
+    __pyqtSignals__ = ("folderChanged(str)",)
+    def __init__(self, parent=None):
+        QPushButton.__init__(self, parent)
+        self.setFixedSize(20, 20)
+        self.setIconSize(QSize(12, 12))
+        self.connect(self, SIGNAL("clicked()"), self.choose_folder)
+        self._folder = None
+
+    def choose_folder(self):
+        self._folder = str(QFileDialog.getExistingDirectory(self,
+                                                            'Select folder'))
+        print(self._folder)
+
+    def get_folder(self):
+        return self._folder
+
+    @Slot(str)
+    def set_folder(self, folder):
+        if folder != self._folder:
+            self._folder = folder
+            self.emit(SIGNAL("folderChanged(str)"), self._folder)
+            pixmap = QPixmap(self.iconSize())
+            pixmap.fill(folder)
+            self.setIcon(QIcon(pixmap))
+
+    folder = Property(str, get_folder, set_folder)
 
 
 class ColorButton(QPushButton):
@@ -351,7 +380,9 @@ class FormWidget(QWidget):
             elif text_to_qcolor(value).isValid():
                 field = ColorLayout(QColor(value), self)
             elif is_text_string(value):
-                if '\n' in value:
+                if value == '%folder_picker':
+                    field = MyFolderPicker(self)
+                elif '\n' in value:
                     for linesep in (os.linesep, '\n'):
                         if linesep in value:
                             value = value.replace(linesep, u("\u2029"))
@@ -413,7 +444,9 @@ class FormWidget(QWidget):
             elif tuple_to_qfont(value) is not None:
                 value = field.get_font()
             elif is_text_string(value):
-                if isinstance(field, QTextEdit):
+                if isinstance(field, MyFolderPicker):
+                    value = field.get_folder()
+                elif isinstance(field, QTextEdit):
                     value = to_text_string(field.toPlainText()
                                            ).replace(u("\u2029"), os.linesep)
                 else:
@@ -641,6 +674,7 @@ if __name__ == "__main__":
                 ('bool', True),
                 ('date', datetime.date(2010, 10, 10)),
                 ('datetime', datetime.datetime(2010, 10, 10)),
+                ('folder', '%folder_picker')
                 ]
         
     def create_datagroup_example():
