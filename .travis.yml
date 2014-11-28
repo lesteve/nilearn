@@ -11,12 +11,12 @@ env:
   - NEURODEBIAN=1
 
 before_install:
-    - wget -O- http://neuro.debian.net/lists/precise.us-nh.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
-    - sudo apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 2649A5A9
-    - if [ $NEURODEBIAN -eq 1 ]; then sudo apt-get update -qq; fi
-    - sudo apt-get install -qq python-scipy python-nose python-nibabel python-sklearn
     - echo this is my test
     - ls /
+    - wget -O- http://neuro.debian.net/lists/precise.us-nh.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+    - sudo apt-key adv -vvv --recv-keys --keyserver hkp://pgp.mit.edu:80 2649A5A9
+    - if [ $NEURODEBIAN -eq 1 ]; then sudo apt-get update -qq; fi
+    - sudo apt-get install -qq python-scipy python-nose python-nibabel python-sklearn
 
 install:
     - python setup.py install
