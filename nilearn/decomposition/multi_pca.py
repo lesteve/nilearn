@@ -10,13 +10,14 @@ import nibabel
 from sklearn.base import BaseEstimator, TransformerMixin, clone
 from sklearn.externals.joblib import Parallel, delayed, Memory
 from sklearn.utils.extmath import randomized_svd
+from sklearn.decomposition.incremental_pca import IncrementalPCA
 
 from ..input_data import NiftiMasker, MultiNiftiMasker, NiftiMapsMasker
 from ..input_data.base_masker import filter_and_mask
 from .._utils.class_inspect import get_params
 from .._utils.cache_mixin import cache
-from .._utils import as_ndarray
 from .._utils.compat import _basestring
+
 
 def session_pca(imgs, mask_img, parameters,
                 n_components=20,
@@ -295,24 +296,17 @@ class MultiPCA(BaseEstimator, TransformerMixin):
                 for subject_pca, subject_svd_val in \
                         zip(subject_pcas, subject_svd_vals):
                     subject_pca *= subject_svd_val[:, np.newaxis]
-            data = np.empty((len(imgs) * self.n_components,
-                            subject_pcas[0].shape[1]),
-                            dtype=subject_pcas[0].dtype)
+            pca = IncrementalPCA(n_components=self.n_components)
             for index, subject_pca in enumerate(subject_pcas):
                 if self.n_components > subject_pca.shape[0]:
                     raise ValueError('You asked for %i components. '
                                      'This is larger than the single-subject '
                                      'data size (%d).' % (self.n_components,
                                                           subject_pca.shape[0]))
-                data[index * self.n_components:
-                     (index + 1) * self.n_components] = subject_pca
-            data, variance, _ = cache(randomized_svd,
-                                self.memory,
-                                func_memory_level=3,
-                                memory_level=self.memory_level)(
-                        data.T, n_components=self.n_components)
-            # as_ndarray is to get rid of memmapping
-            data = as_ndarray(data.T)
+                pca.partial_fit(subject_pca)
+
+            data = pca.components_
+            variance = pca.singular_values_
         else:
             data = subject_pcas[0]
             variance = subject_svd_vals[0]
