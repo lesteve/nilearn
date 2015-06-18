@@ -381,15 +381,22 @@ class MultiPCA(BaseEstimator, TransformerMixin):
             return self._in_memory_group_pca(subject_pcas)
 
     def _incremental_group_pca(self, subject_pcas):
-        # delayed import because IncrementalPCA is only supported for
-        # sklearn versions > 0.16
-        from sklearn.decomposition.incremental_pca import IncrementalPCA
+        def _incremental_group_pca_impl(subject_pcas, n_components):
+            # delayed import because IncrementalPCA is only supported for
+            # sklearn versions > 0.16
+            from sklearn.decomposition.incremental_pca import IncrementalPCA
 
-        pca = IncrementalPCA(n_components=self.n_components)
-        for subject_pca in subject_pcas:
-            pca.partial_fit(subject_pca)
+            pca = IncrementalPCA(n_components=self.n_components)
+            for subject_pca in subject_pcas:
+                pca.partial_fit(subject_pca)
 
-        return pca.components_, pca.singular_values_
+            return pca.components_, pca.singular_values_
+
+        return cache(_incremental_group_pca_impl,
+                     self.memory,
+                     func_memory_level=3,
+                     memory_level=self.memory_level)(
+                         subject_pcas, self.n_components)
 
     def _in_memory_group_pca(self, subject_pcas):
         data = np.empty((len(subject_pcas) * self.n_components,
