@@ -111,7 +111,6 @@ class CanICA(MultiPCA, CacheMixin):
 
     * G. Varoquaux et al. "ICA-based sparse features recovery from fMRI
       datasets", IEEE ISBI 2010, p. 1177
-
     """
 
     def __init__(self, mask=None, n_components=20,
