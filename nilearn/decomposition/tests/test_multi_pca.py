@@ -1,9 +1,13 @@
 """
 Test the multi-PCA module
 """
+from unittest import skipIf
+
+from distutils.version import LooseVersion
+from nose.tools import assert_raises
 
 import numpy as np
-from nose.tools import assert_raises
+import sklearn
 
 import nibabel
 
@@ -11,7 +15,7 @@ from nilearn.decomposition.multi_pca import MultiPCA
 from nilearn.input_data import MultiNiftiMasker
 
 
-def test_multi_pca():
+def _multi_pca_test_helper(incremental_group_pca):
     # Smoke test the MultiPCA
     # XXX: this is mostly a smoke test
     shape = (6, 8, 10, 5)
@@ -27,7 +31,8 @@ def test_multi_pca():
         data.append(nibabel.Nifti1Image(this_data, affine))
 
     mask_img = nibabel.Nifti1Image(np.ones(shape[:3], dtype=np.int8), affine)
-    multi_pca = MultiPCA(mask=mask_img, n_components=3)
+    multi_pca = MultiPCA(mask=mask_img, n_components=3,
+                         incremental_group_pca=incremental_group_pca)
 
     # Test that the components are the same if we put twice the same data
     components1 = multi_pca.fit(data).components_
@@ -55,3 +60,13 @@ def test_multi_pca():
 
     # Smoke test to fit with no img
     assert_raises(TypeError, multi_pca.fit)
+
+
+def test_multi_pca():
+    _multi_pca_test_helper(incremental_group_pca=False)
+
+
+@skipIf(LooseVersion(sklearn.__version__) < LooseVersion('0.16'),
+        'IncrementalPCA supported only from scikit-learn 0.16 onwards')
+def test_multi_pca_with_incremental_group_pca():
+    _multi_pca_test_helper(incremental_group_pca=True)
