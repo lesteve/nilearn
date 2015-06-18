@@ -6,16 +6,17 @@ import numpy as np
 import warnings
 from scipy import linalg
 
-import nibabel
 from sklearn.base import BaseEstimator, TransformerMixin, clone
 from sklearn.externals.joblib import Parallel, delayed, Memory
 from sklearn.utils.extmath import randomized_svd
-from sklearn.decomposition.incremental_pca import IncrementalPCA
+
+import nibabel
 
 from ..input_data import NiftiMasker, MultiNiftiMasker, NiftiMapsMasker
 from ..input_data.base_masker import filter_and_mask
 from .._utils.class_inspect import get_params
 from .._utils.cache_mixin import cache
+from .._utils import as_ndarray
 from .._utils.compat import _basestring
 
 
@@ -134,6 +135,11 @@ class MultiPCA(BaseEstimator, TransformerMixin):
         This parameter is passed to signal.clean. Please see the related
         documentation for details
 
+    incremental_group_pca: bool, optional
+        Whether to use an IncrementalPCA for the group PCA. This will
+        reduce memory usage possibly at the expense of precision. This
+        feature is only supported for scikit-learn versions 0.16 onwards.
+
     memory: instance of joblib.Memory or string
         Used to cache the masking process.
         By default, no caching is done. If a string is given, it is the
@@ -171,7 +177,8 @@ class MultiPCA(BaseEstimator, TransformerMixin):
     def __init__(self, n_components=20, smoothing_fwhm=None, mask=None,
                  do_cca=True, standardize=True, target_affine=None,
                  target_shape=None, low_pass=None, high_pass=None,
-                 t_r=None, memory=Memory(cachedir=None), memory_level=0,
+                 t_r=None, incremental_group_pca=False,
+                 memory=Memory(cachedir=None), memory_level=0,
                  n_jobs=1, verbose=0,
                  ):
         self.mask = mask
@@ -189,6 +196,20 @@ class MultiPCA(BaseEstimator, TransformerMixin):
         self.target_affine = target_affine
         self.target_shape = target_shape
         self.standardize = standardize
+        self.incremental_group_pca = incremental_group_pca
+
+        if incremental_group_pca:
+            try:
+                from sklearn.decomposition.incremental_pca import IncrementalPCA
+            except ImportError as exc:
+                import sklearn
+                message = ('IncrementalPCA is only supported in '
+                           'scikit-learn version 0.16 onwards, '
+                           'your scikit-learn version is {0}. '
+                           "Please set 'incremental_group_pca' "
+                           'to False').format(sklearn.__version__)
+                exc.args += (message, )
+                raise
 
     def fit(self, imgs, y=None, confounds=None):
         """Compute the mask and the components
@@ -296,17 +317,14 @@ class MultiPCA(BaseEstimator, TransformerMixin):
                 for subject_pca, subject_svd_val in \
                         zip(subject_pcas, subject_svd_vals):
                     subject_pca *= subject_svd_val[:, np.newaxis]
-            pca = IncrementalPCA(n_components=self.n_components)
             for index, subject_pca in enumerate(subject_pcas):
                 if self.n_components > subject_pca.shape[0]:
                     raise ValueError('You asked for %i components. '
                                      'This is larger than the single-subject '
                                      'data size (%d).' % (self.n_components,
                                                           subject_pca.shape[0]))
-                pca.partial_fit(subject_pca)
 
-            data = pca.components_
-            variance = pca.singular_values_
+            data, variance = self.group_pca(subject_pcas)
         else:
             data = subject_pcas[0]
             variance = subject_svd_vals[0]
@@ -354,3 +372,37 @@ class MultiPCA(BaseEstimator, TransformerMixin):
         # XXX: dealing properly with 2D/ list of 2D data?
         return [nifti_maps_masker.inverse_transform(signal)
                 for signal in component_signals]
+
+    def group_pca(self, subject_pcas):
+        """Compute the group PCA from individual subject PCAs"""
+        if self.incremental_group_pca:
+            return self._incremental_group_pca(subject_pcas)
+        else:
+            return self._in_memory_group_pca(subject_pcas)
+
+    def _incremental_group_pca(self, subject_pcas):
+        # delayed import because IncrementalPCA is only supported for
+        # sklearn versions > 0.16
+        from sklearn.decomposition.incremental_pca import IncrementalPCA
+
+        pca = IncrementalPCA(n_components=self.n_components)
+        for subject_pca in subject_pcas:
+            pca.partial_fit(subject_pca)
+
+        return pca.components_, pca.singular_values_
+
+    def _in_memory_group_pca(self, subject_pcas):
+        data = np.empty((len(subject_pcas) * self.n_components,
+                         subject_pcas[0].shape[1]),
+                        dtype=subject_pcas[0].dtype)
+        for index, subject_pca in enumerate(subject_pcas):
+            data[index * self.n_components:
+                 (index + 1) * self.n_components] = subject_pca
+        data, variance, _ = cache(randomized_svd,
+                                  self.memory,
+                                  func_memory_level=3,
+                                  memory_level=self.memory_level)(
+                                      data.T, n_components=self.n_components)
+        # as_ndarray is to get rid of memmapping
+        data = as_ndarray(data.T)
+        return data, variance

@@ -83,6 +83,11 @@ class CanICA(MultiPCA, CacheMixin):
         This parameter is passed to signal.clean. Please see the related
         documentation for details
 
+    incremental_group_pca: bool, optional
+        Whether to use an IncrementalPCA for the group PCA. This will
+        reduce memory usage possibly at the expense of precision. This
+        feature is only supported for scikit-learn versions 0.16 onwards.
+
     memory: instance of joblib.Memory or string
         Used to cache the masking process.
         By default, no caching is done. If a string is given, it is the
@@ -106,6 +111,7 @@ class CanICA(MultiPCA, CacheMixin):
 
     * G. Varoquaux et al. "ICA-based sparse features recovery from fMRI
       datasets", IEEE ISBI 2010, p. 1177
+
     """
 
     def __init__(self, mask=None, n_components=20,
@@ -115,6 +121,7 @@ class CanICA(MultiPCA, CacheMixin):
                  random_state=0,
                  target_affine=None, target_shape=None,
                  low_pass=None, high_pass=None, t_r=None,
+                 incremental_group_pca=False,
                  # Common options
                  memory=Memory(cachedir=None), memory_level=0,
                  n_jobs=1, verbose=0,
@@ -123,7 +130,8 @@ class CanICA(MultiPCA, CacheMixin):
             mask=mask, memory=memory, memory_level=memory_level,
             n_jobs=n_jobs, verbose=verbose, do_cca=do_cca,
             n_components=n_components, smoothing_fwhm=smoothing_fwhm,
-            target_affine=target_affine, target_shape=target_shape)
+            target_affine=target_affine, target_shape=target_shape,
+            incremental_group_pca=incremental_group_pca)
         self.threshold = threshold
         self.random_state = random_state
         self.low_pass = low_pass
