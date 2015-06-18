@@ -392,11 +392,14 @@ class MultiPCA(BaseEstimator, TransformerMixin):
 
             return pca.components_, pca.singular_values_
 
+        # return _incremental_group_pca_impl(
+        #           subject_pcas, self.n_components)
+
         return cache(_incremental_group_pca_impl,
                      self.memory,
                      func_memory_level=3,
                      memory_level=self.memory_level)(
-                         subject_pcas, self.n_components)
+                  subject_pcas, self.n_components)
 
     def _in_memory_group_pca(self, subject_pcas):
         data = np.empty((len(subject_pcas) * self.n_components,
@@ -405,6 +408,9 @@ class MultiPCA(BaseEstimator, TransformerMixin):
         for index, subject_pca in enumerate(subject_pcas):
             data[index * self.n_components:
                  (index + 1) * self.n_components] = subject_pca
+
+        # Temporary to check against IncrementalPCA
+        data.T -= data.mean(axis=1)
         data, variance, _ = cache(randomized_svd,
                                   self.memory,
                                   func_memory_level=3,
