@@ -1,8 +1,6 @@
 """
 Test the multi-PCA module
 """
-from unittest import skipIf
-
 from distutils.version import LooseVersion
 from nose.tools import assert_raises
 
@@ -66,7 +64,8 @@ def test_multi_pca():
     _multi_pca_test_helper(incremental_group_pca=False)
 
 
-@skipIf(LooseVersion(sklearn.__version__) < LooseVersion('0.16'),
-        'IncrementalPCA supported only from scikit-learn 0.16 onwards')
+@np.testing.decorators.skipif(
+    LooseVersion(sklearn.__version__) < LooseVersion('0.16'),
+    'IncrementalPCA supported only from scikit-learn 0.16 onwards')
 def test_multi_pca_with_incremental_group_pca():
     _multi_pca_test_helper(incremental_group_pca=True)
