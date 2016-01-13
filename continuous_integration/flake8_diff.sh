@@ -2,7 +2,8 @@
 
 set -e
 
-TRAVIS_ENV_VARIABLES=$(env | grep TRAVIS) | cut -f1 -d=
+TRAVIS_ENV_VARIABLES=$(env | grep TRAVIS | cut -f1 -d=)
+echo TRAVIS_ENV_VARIABLES: $TRAVIS_ENV_VARIABLES
 for var in $TRAVIS_ENV_VARIABLES; do
     echo "$var: ${!var}"
 done
