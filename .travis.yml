@@ -8,9 +8,6 @@ env:
     - TEST_RUN_FOLDER="/tmp" # folder where the tests are run from
 
 matrix:
-  allow_failures:
-    # allow_failures seems to be keyed on the python version
-    - python: 2.7
   include:
     # FLAKE8 linting on diff wrt common ancestor with upstream/master
     # Note: the python value is only there to trigger allow_failures
