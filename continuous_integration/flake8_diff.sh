@@ -2,6 +2,11 @@
 
 set -e
 
+TRAVIS_ENV_VARIABLES=$(env | grep TRAVIS) | cut -f1 -d=
+for var in $TRAVIS_ENV_VARIABLES; do
+    echo "$var: ${!var}"
+done
+
 # Travis does the git clone with a limited depth (50 at the time of
 # writing). This may not be enough to find the common ancestor with
 # $REMOTE/master so we unshallow the git checkout
