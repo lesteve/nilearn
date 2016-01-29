@@ -36,7 +36,8 @@ localizer_tmap_filename = localizer_dataset.tmaps[1]
 
 ###############################################################################
 # Plotting statistical maps
-plotting.plot_stat_map(localizer_tmap_filename, bg_img=localizer_anat_filename,
+plotting.plot_stat_map(localizer_tmap_filename,
+                       background_img=localizer_anat_filename,
                        threshold=3, title="plot_stat_map",
                        cut_coords=(36, -27, 66))
 
@@ -51,7 +52,8 @@ plotting.plot_anat(haxby_anat_filename, title="plot_anat")
 
 ###############################################################################
 # Plotting ROIs (here the mask)
-plotting.plot_roi(haxby_mask_filename, bg_img=haxby_anat_filename,
+plotting.plot_roi(haxby_mask_filename,
+                  background_img=haxby_anat_filename,
                   title="plot_roi")
 
 ###############################################################################

@@ -28,25 +28,25 @@ localizer_tmap_filename = localizer_dataset.tmaps[1]
 from nilearn import plotting
 
 plotting.plot_stat_map(localizer_tmap_filename,
-                       bg_img=localizer_anat_filename,
+                       background_img=localizer_anat_filename,
                        cut_coords=(36, -27, 66),
                        threshold=3, title="dim=-.5",
                        dim=-.5)
 
 plotting.plot_stat_map(localizer_tmap_filename,
-                       bg_img=localizer_anat_filename,
+                       background_img=localizer_anat_filename,
                        cut_coords=(36, -27, 66),
                        threshold=3, title="dim=0",
                        dim=0)
 
 plotting.plot_stat_map(localizer_tmap_filename,
-                       bg_img=localizer_anat_filename,
+                       background_img=localizer_anat_filename,
                        cut_coords=(36, -27, 66),
                        threshold=3, title="dim=.5",
                        dim=.5)
 
 plotting.plot_stat_map(localizer_tmap_filename,
-                       bg_img=localizer_anat_filename,
+                       background_img=localizer_anat_filename,
                        cut_coords=(36, -27, 66),
                        threshold=3, title="dim=1",
                        dim=1)

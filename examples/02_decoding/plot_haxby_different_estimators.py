@@ -178,7 +178,7 @@ for classifier_name, classifier in sorted(classifiers.items()):
     weight_img = masker.inverse_transform(weights)
     weight_map = weight_img.get_data()
     threshold = np.max(np.abs(weight_map)) * 1e-3
-    plot_stat_map(weight_img, bg_img=mean_epi_img,
+    plot_stat_map(weight_img, background_img=mean_epi_img,
                   display_mode='z', cut_coords=[-17],
                   threshold=threshold,
                   title='%s: face vs house' % classifier_name)

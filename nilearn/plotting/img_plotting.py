@@ -103,7 +103,7 @@ def _get_colorbar_and_data_ranges(stat_map_img, vmax, symmetric_cbar, kwargs,
     return cbar_vmin, cbar_vmax, vmin, vmax
 
 
-def _plot_img_with_bg(img, bg_img=None, cut_coords=None,
+def _plot_img_with_bg(img, background_img=None, cut_coords=None,
                       output_file=None, display_mode='ortho',
                       colorbar=False, figure=None, axes=None, title=None,
                       threshold=None, annotate=True,
@@ -119,9 +119,9 @@ def _plot_img_with_bg(img, bg_img=None, cut_coords=None,
         Parameters
         ----------
         bg_vmin: float
-            vmin for bg_img
+            vmin for background_img
         bg_vmax: float
-            vmax for bg_img
+            vmax for background_img
         interpolation: string
             passed to the add_overlay calls
         display_factory: function
@@ -168,9 +168,9 @@ def _plot_img_with_bg(img, bg_img=None, cut_coords=None,
         black_bg=black_bg,
         colorbar=colorbar)
 
-    if bg_img is not None:
-        bg_img = _utils.check_niimg_3d(bg_img)
-        display.add_overlay(bg_img,
+    if background_img is not None:
+        background_img = _utils.check_niimg_3d(background_img)
+        display.add_overlay(background_img,
                             vmin=bg_vmin, vmax=bg_vmax,
                             cmap=plt.cm.gray, interpolation=interpolation)
 
@@ -551,7 +551,7 @@ def plot_epi(epi_img=None, cut_coords=None, output_file=None,
     return display
 
 
-def plot_roi(roi_img, bg_img=MNI152TEMPLATE, cut_coords=None,
+def plot_roi(roi_img, background_img=MNI152TEMPLATE, cut_coords=None,
              output_file=None, display_mode='ortho', figure=None, axes=None,
              title=None, annotate=True, draw_cross=True, black_bg='auto',
              alpha=0.7, cmap=plt.cm.gist_ncar, dim=True, vmin=None, vmax=None,
@@ -565,11 +565,11 @@ def plot_roi(roi_img, bg_img=MNI152TEMPLATE, cut_coords=None,
             See http://nilearn.github.io/manipulating_visualizing/manipulating_images.html#niimg.
             The ROI/mask image, it could be binary mask or an atlas or ROIs
             with integer values.
-        bg_img : Niimg-like object
+        background_img : Niimg-like object
             See http://nilearn.github.io/manipulating_visualizing/manipulating_images.html#niimg.
             The background image that the ROI/mask will be plotted on top of.
             If nothing is specified, the MNI152 template will be used.
-            To turn off background image, just pass "bg_img=False".
+            To turn off background image, just pass "background_img=False".
         cut_coords: None, or a tuple of floats
             The MNI coordinates of the point where the cut is performed, in
             MNI coordinates and order.
@@ -620,10 +620,11 @@ def plot_roi(roi_img, bg_img=MNI152TEMPLATE, cut_coords=None,
             Upper bound for plotting, passed to matplotlib.pyplot.imshow
 
     """
-    bg_img, black_bg, bg_vmin, bg_vmax = _load_anat(bg_img, dim=dim,
-                                                    black_bg=black_bg)
+    background_img, black_bg, bg_vmin, bg_vmax = _load_anat(
+        background_img, dim=dim,
+        black_bg=black_bg)
 
-    display = _plot_img_with_bg(img=roi_img, bg_img=bg_img,
+    display = _plot_img_with_bg(img=roi_img, background_img=background_img,
                                 cut_coords=cut_coords,
                                 output_file=output_file,
                                 display_mode=display_mode,
@@ -638,7 +639,7 @@ def plot_roi(roi_img, bg_img=MNI152TEMPLATE, cut_coords=None,
     return display
 
 
-def plot_prob_atlas(maps_img, anat_img=MNI152TEMPLATE, view_type='auto',
+def plot_prob_atlas(maps_img, background_img=MNI152TEMPLATE, view_type='auto',
                     threshold=None, linewidths=2.5, cut_coords=None,
                     output_file=None, display_mode='ortho',
                     figure=None, axes=None, title=None, annotate=True,
@@ -653,11 +654,11 @@ def plot_prob_atlas(maps_img, anat_img=MNI152TEMPLATE, view_type='auto',
         ----------
         maps_img: Niimg-like object or the filename
             4D image of the probabilistic atlas maps
-        anat_img : Niimg-like object
+        background_img : Niimg-like object
             See http://nilearn.github.io/manipulating_visualizing/manipulating_images.html#niimg.
             The anatomical image to be used as a background.
             If nothing is specified, the MNI152 template will be used.
-            To turn off background image, just pass "anat_img=False".
+            To turn off background image, just pass "background_img=False".
         view_type: {'auto', 'contours', 'filled_contours', 'continuous'}, optional
             By default view_type == 'auto', which means maps are overlayed as
             contours if number of maps to display are more or
@@ -731,7 +732,7 @@ def plot_prob_atlas(maps_img, anat_img=MNI152TEMPLATE, view_type='auto',
             Alpha sets the transparency of the color inside the filled
             contours.
     """
-    display = plot_anat(anat_img, cut_coords=cut_coords,
+    display = plot_anat(background_img, cut_coords=cut_coords,
                         display_mode=display_mode,
                         figure=figure, axes=axes, title=title,
                         annotate=annotate, draw_cross=draw_cross,
@@ -806,7 +807,7 @@ def plot_prob_atlas(maps_img, anat_img=MNI152TEMPLATE, view_type='auto',
     return display
 
 
-def plot_stat_map(stat_map_img, bg_img=MNI152TEMPLATE, cut_coords=None,
+def plot_stat_map(stat_map_img, background_img=MNI152TEMPLATE, cut_coords=None,
                   output_file=None, display_mode='ortho', colorbar=True,
                   figure=None, axes=None, title=None, threshold=1e-6,
                   annotate=True, draw_cross=True, black_bg='auto',
@@ -820,11 +821,11 @@ def plot_stat_map(stat_map_img, bg_img=MNI152TEMPLATE, cut_coords=None,
         stat_map_img : Niimg-like object
             See http://nilearn.github.io/manipulating_visualizing/manipulating_images.html#niimg.
             The statistical map image
-        bg_img : Niimg-like object
+        background_img : Niimg-like object
             See http://nilearn.github.io/manipulating_visualizing/manipulating_images.html#niimg.
             The background image that the ROI/mask will be plotted on top of.
             If nothing is specified, the MNI152 template will be used.
-            To turn off background image, just pass "bg_img=False".
+            To turn off background image, just pass "background_img=False".
         cut_coords : None, a tuple of floats, or an integer
             The MNI coordinates of the point where the cut is performed
             If display_mode is 'ortho', this should be a 3-tuple: (x, y, z)
@@ -886,8 +887,9 @@ def plot_stat_map(stat_map_img, bg_img=MNI152TEMPLATE, cut_coords=None,
         ordered.
     """
     # dim the background
-    bg_img, black_bg, bg_vmin, bg_vmax = _load_anat(bg_img, dim=dim,
-                                                    black_bg=black_bg)
+    background_img, black_bg, bg_vmin, bg_vmax = _load_anat(
+        background_img, dim=dim,
+        black_bg=black_bg)
 
     stat_map_img = _utils.check_niimg_3d(stat_map_img, dtype='auto')
 
@@ -897,7 +899,8 @@ def plot_stat_map(stat_map_img, bg_img=MNI152TEMPLATE, cut_coords=None,
         symmetric_cbar,
         kwargs)
 
-    display = _plot_img_with_bg(img=stat_map_img, bg_img=bg_img,
+    display = _plot_img_with_bg(img=stat_map_img,
+                                background_img=background_img,
                                 cut_coords=cut_coords,
                                 output_file=output_file,
                                 display_mode=display_mode,
