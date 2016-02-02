@@ -83,6 +83,7 @@ create_new_conda_env() {
 if [[ "$DISTRIB" == "neurodebian" ]]; then
     create_new_venv
     pip install nose-timer
+    sudo sed -i 's/us-central1.gce/us-central1.gce.clouds/' /etc/apt/sources.list && sudo apt-get update
     bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
     sudo apt-get install -qq python-scipy python-nose python-nibabel python-sklearn
 
