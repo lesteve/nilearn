@@ -22,10 +22,12 @@ statistics with applications such as predictive modelling,
 classification, decoding, or connectivity analysis.
 
 This work is made available by a community of people, amongst which
-the INRIA Parietal Project Team and the scikit-learn folks, in particular
+the Inria Parietal Project Team and the scikit-learn folks, in particular
 P. Gervais, A. Abraham, V. Michel, A.
 Gramfort, G. Varoquaux, F. Pedregosa, B. Thirion, M. Eickenberg, C. F. Gorgolewski,
 D. Bzdok, L. Estève and B. Cipollini.
+
+
 
 Important links
 ===============
