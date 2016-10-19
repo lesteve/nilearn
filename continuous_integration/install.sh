@@ -79,6 +79,7 @@ create_new_conda_env() {
         # Make sure that MKL is used
         conda install --quiet --yes mkl
     elif [[ -z $CIRCLECI ]]; then
+        printenv | grep CIRCLE
         # Travis doesn't use MKL but circle ci does for speeding up examples
         # generation in the html documentation.
         # Make sure that MKL is not used
