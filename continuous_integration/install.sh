@@ -86,6 +86,8 @@ create_new_conda_env() {
     fi
 }
 
+printenv | grep CIRCLE
+
 if [[ "$DISTRIB" == "neurodebian" ]]; then
     create_new_venv
     pip install nose-timer
